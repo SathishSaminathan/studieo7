@@ -1,10 +1,10 @@
 {
   "devToolsPort": 19002,
-  "expoServerPort": 19000,
-  "packagerPort": 19001,
-  "packagerPid": 107892,
-  "expoServerNgrokUrl": "https://96-p7r.sathishsaminathan.studieo7.exp.direct",
-  "packagerNgrokUrl": "https://packager.96-p7r.sathishsaminathan.studieo7.exp.direct",
-  "ngrokPid": 109560,
+  "expoServerPort": null,
+  "packagerPort": null,
+  "packagerPid": null,
+  "expoServerNgrokUrl": null,
+  "packagerNgrokUrl": null,
+  "ngrokPid": null,
   "webpackServerPort": null
 }

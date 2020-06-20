@@ -13,7 +13,7 @@ const SECTIONS = [
   },
   {
     title: "How to book a service?",
-    content: "Using Android & ios app users can book the appointment.",
+    content: "Using ios app users can book the appointment.",
   },
 ];
 

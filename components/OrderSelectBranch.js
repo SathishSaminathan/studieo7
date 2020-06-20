@@ -1,10 +1,10 @@
 import React, { Component }  from 'react';
-import {Dimensions, AsyncStorage, StyleSheet, Text, View, Image, TextInput, Button, ScrollView, TouchableOpacity, TouchableHighlight} from 'react-native';
-import { RFPercentage, RFValue } from "react-native-responsive-fontsize";
+import {AsyncStorage, StyleSheet, Text, View, Image, ScrollView, TouchableOpacity, TouchableHighlight} from 'react-native';
+import { RFValue } from "react-native-responsive-fontsize";
 import BackButton from './BackButton.js';
-
 import { Actions } from 'react-native-router-flux';
 import axios from 'axios';
+// import Toast from 'react-native-simple-toast';
 
 var SECTIONS = [];
 
@@ -18,12 +18,15 @@ export default class OrderSelectBranch extends Component {
         activeSections: [],
         branchList:'',
         totalAmount:0,
+        baseurl:''
       }
      
     }
 
     async componentDidMount(){
       this.getBranchList();
+      let base_url=await AsyncStorage.getItem('baseURL');  
+      this.setState({baseurl:base_url});
     }
 
     async getBranchList() {
@@ -32,11 +35,15 @@ export default class OrderSelectBranch extends Component {
         let AuthoKey = await AsyncStorage.getItem('AuthoKey'); 
         const params = new URLSearchParams();
         params.append('auth_id', AuthoKey);
-        axios.post('http://studieo7.wssdemozone.in/api/getBranchList',params)
+        let baseURL = await AsyncStorage.getItem('baseURL');  
+        axios.post(baseURL+'api/getBranchList',params)
         .then(response => {
             SECTIONS= response.data.data; 
             this.setState({selectedBranchId:response.data.selectedBranch.branch_id});
             this.setState({serviceCheck:true});
+            if(response.data.selectedBranch.branch_id==0){
+              this.setState({selectedBranchId:1});
+            }
         })
         .catch(errorMsg => {
             console.log(errorMsg);
@@ -47,14 +54,16 @@ export default class OrderSelectBranch extends Component {
     changeBranch(data){
       this.setState({selectedBranchId:data});
       this.lapsList();
+      // Toast.showWithGravity('Shop location selected', Toast.LONG, Toast.TOP);
     }
 
   lapsList() {
     return SECTIONS.map((data,index) => {
 
-      let matchId = "http://studieo7.wssdemozone.in/assets/img/check-mark-white.png";
+      let baseURLget=this.state.baseurl;
+      let matchId = baseURLget+"assets/img/check-mark-white.png";
       if(this.state.selectedBranchId == data.branch_id){
-        matchId = "http://studieo7.wssdemozone.in/assets/img/check-mark.png";
+        matchId = baseURLget+"assets/img/check-mark.png";
       }
       return (
             <TouchableOpacity key={index} style={styles.header} onPress={()=>this.changeBranch(data.branch_id)}>
@@ -190,7 +199,7 @@ const styles = StyleSheet.create({
     padding:10,
     alignSelf:'center',
     backgroundColor:'#d1a440',
-    bottom:0,
+    bottom:5,
     width:'100%',
   },
   footerButtonText:{

@@ -1,10 +1,8 @@
 import React, { Component }  from 'react';
-import {Dimensions, AsyncStorage, StyleSheet, Text, View, Image, TextInput, Button, ScrollView, TouchableOpacity} from 'react-native';
-import { RFPercentage, RFValue } from "react-native-responsive-fontsize";
+import { AsyncStorage, StyleSheet, Text, View, Image, ScrollView, TouchableOpacity} from 'react-native';
+import { RFValue } from "react-native-responsive-fontsize";
 import BackButton from './BackButton.js';
-import Accordion from 'react-native-collapsible/Accordion';
-
-import { Actions } from 'react-native-router-flux';
+// import Toast from 'react-native-simple-toast';
 import axios from 'axios';
 
 var SECTIONS = [];
@@ -17,20 +15,24 @@ export default class BranchSelect extends Component {
         selectedBranchId: '',
         serviceCheck:false,
         activeSections: [],
-        branchList:''
+        branchList:'',
+        baseurl:''
       }
      
     }
 
     async componentDidMount(){
       this.getBranchList();
+      let baseURL = await AsyncStorage.getItem('baseURL');  
+      this.setState({baseurl:baseURL});
     }
 
     async getBranchList() {
         let AuthoKey = await AsyncStorage.getItem('AuthoKey'); 
         const params = new URLSearchParams();
         params.append('auth_id', AuthoKey);
-        axios.post('http://studieo7.wssdemozone.in/api/getBranchList',params)
+        let baseURL = await AsyncStorage.getItem('baseURL');  
+        axios.post(baseURL+'api/getBranchList',params)
         .then(response => {
             SECTIONS= response.data.data;
             this.setState({serviceCheck:true});
@@ -46,9 +48,10 @@ export default class BranchSelect extends Component {
       const params = new URLSearchParams();
       params.append('auth_id', AuthoKey);
       params.append('branch_id', data);
-      axios.post('http://studieo7.wssdemozone.in/api/makeStar',params)
+      let baseURL = await AsyncStorage.getItem('baseURL');  
+      axios.post(baseURL+'api/makeStar',params)
         .then(response => {
-          console.log(response.data);
+          // Toast.show('Favourite shop updated', Toast.LONG);
           this.getBranchList();
         })
         .catch(errorMsg => {
@@ -56,12 +59,12 @@ export default class BranchSelect extends Component {
         })
     }
 
-  lapsList() {
+    lapsList(){
     return SECTIONS.map((data,index) => {
-
-      let matchId = "http://studieo7.wssdemozone.in/assets/img/star.png";
+      let baseURL = this.state.baseurl;  
+      let matchId = baseURL+"assets/img/star.png";
       if(this.state.selectedBranchId == data.branch_id){
-        matchId = "http://studieo7.wssdemozone.in/assets/img/star_ok.png";
+        matchId = baseURL+"assets/img/star_ok.png";
       }
       return (
             <TouchableOpacity key={index} style={styles.header}  onPress={()=>this.makeStar(data.branch_id)}>

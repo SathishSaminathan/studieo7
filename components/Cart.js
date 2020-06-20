@@ -171,11 +171,12 @@ const styles = StyleSheet.create({
     height:125,
   },
   serviceItemChild:{
-    height:80,
+    height:110,
     backgroundColor:'#FFF',
     opacity:0.9,
     borderBottomColor:'#333',
     borderBottomWidth:0.5,
+    paddingBottom:10,
   },
   serviceItemChildInner:{
     flex:2,
@@ -221,7 +222,7 @@ const styles = StyleSheet.create({
     padding:5,
     borderColor:'#d1a440',
     borderWidth:0.5,
-    width:80,
+    width:120,
     borderRadius:5,
     backgroundColor:'#d1a440',
   },
@@ -253,7 +254,7 @@ const styles = StyleSheet.create({
     padding:10,
     alignSelf:'center',
     backgroundColor:'#d1a440',
-    bottom:0,
+    bottom:5,
     width:'100%',
   },
   footerButtonText:{

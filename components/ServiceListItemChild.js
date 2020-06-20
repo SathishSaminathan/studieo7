@@ -69,7 +69,7 @@ export default class ServiceListItemChild extends Component {
 
 const styles = StyleSheet.create({
   serviceItemChild:{
-    height:80,
+    height:110,
     backgroundColor:'#FFF',
     opacity:0.9,
     borderBottomColor:'#333',

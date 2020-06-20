@@ -1,9 +1,10 @@
 import React, { Component }  from 'react';
-import {Dimensions, AsyncStorage, StyleSheet, Text, View, Image, TextInput, Button, ScrollView, TouchableHighlight} from 'react-native';
+import {Dimensions, AsyncStorage, StyleSheet, Text, View, Image, TextInput, Alert, ScrollView, TouchableHighlight} from 'react-native';
 import { RFPercentage, RFValue } from "react-native-responsive-fontsize";
 import BackButton from './BackButton.js';
 import { Actions } from 'react-native-router-flux';
 import axios from 'axios';
+// import Toast from 'react-native-simple-toast';
 
 export default class Preview extends Component {
 
@@ -14,6 +15,7 @@ export default class Preview extends Component {
         cart_amount: this.props.cartDetails.cart_amount.cart_amount,
         cart_date: this.props.cartDetails.date.date,
         branch_id:this.props.cartDetails.cart_branch.cart_branch,
+        staff_id:this.props.cartDetails.staff && this.props.cartDetails.staff.staff,
         branch_details:'',
         payment_type:'',
         payable_amount:'',
@@ -27,7 +29,8 @@ export default class Preview extends Component {
       params.append('auth_id', AuthoKey);
       params.append('branch_id', this.props.cartDetails.cart_branch.cart_branch);
       params.append('amount', this.props.cartDetails.cart_amount.cart_amount);
-      axios.post('http://studieo7.wssdemozone.in/api/getWalletStatus',params)
+      let baseURL = await AsyncStorage.getItem('baseURL');  
+      axios.post(baseURL+'api/getWalletStatus',params)
       .then(response => {
         let resVal=response.data;
         if(resVal.status=='success'){
@@ -45,20 +48,22 @@ export default class Preview extends Component {
 
 
   async payviaWallet(){
-    const { branch_id, payment_type, cart_amount, cart_date }  = this.state ;
+    const { branch_id, staff_id, payment_type, cart_amount, cart_date }  = this.state ;
     let AuthoKey = await AsyncStorage.getItem('AuthoKey'); 
     const params = new URLSearchParams();
     params.append('auth_id', AuthoKey);
     params.append('payment_type', payment_type);
     params.append('amount', cart_amount);
     params.append('branch_id', branch_id);
+    params.append('staff_id', staff_id);
     params.append('app_date', cart_date);
-    axios.post('http://studieo7.wssdemozone.in/api/processWalletPayment',params)
+    let baseURL = await AsyncStorage.getItem('baseURL');  
+    axios.post(baseURL+'api/processWalletPayment',params)
     .then(response => {
-      console.log(response.data);
       let resVal=response.data;
       if(resVal.status=='success'){
           Actions.wallet();
+          // Toast.showWithGravity('Appointment booked successfully', Toast.LONG, Toast.TOP);
        }
     })
     .catch(errorMsg => {
@@ -68,8 +73,46 @@ export default class Preview extends Component {
   }
 
   async payviaOnline(){
-    const { branch_id, payment_type, payable_amount, cart_date, cart_amount }  = this.state ;
-     Actions.paymentcart({cartDetails:{branch_id:{branch_id},payment_type:{payment_type},cart_amount:{cart_amount},payable_amount:{payable_amount},cart_date:{cart_date}}});
+    const { branch_id, staff_id, payment_type, payable_amount, cart_date, cart_amount }  = this.state ;
+     Actions.paymentcart({cartDetails:{branch_id:{branch_id},staff_id:{staff_id},payment_type:{payment_type},cart_amount:{cart_amount},payable_amount:{payable_amount},cart_date:{cart_date}}});
+  }
+
+  async payatSalonConfirm(){
+      const { branch_id, staff_id, payment_type, cart_amount, cart_date }  = this.state ;
+
+      console.log(staff_id);
+      let AuthoKey = await AsyncStorage.getItem('AuthoKey'); 
+      const params = new URLSearchParams();
+      params.append('auth_id', AuthoKey);
+      params.append('payment_type', payment_type);
+      params.append('amount', cart_amount);
+      params.append('branch_id', branch_id);
+      params.append('staff_id', staff_id);
+      params.append('app_date', cart_date);
+      let baseURL = await AsyncStorage.getItem('baseURL');  
+      axios.post(baseURL+'api/processSalonPayment',params)
+      .then(response => {
+        let resVal=response.data;
+        if(resVal.status=='success'){
+            Actions.history();
+            // Toast.showWithGravity('Appointment booked successfully', Toast.LONG, Toast.TOP);
+        }
+      })
+      .catch(errorMsg => {
+          console.log(errorMsg);
+      })
+  }
+
+  async payatSalon(){
+      Alert.alert(
+        'Warning',
+        'Are you sure? You will pay at salon?',
+        [
+          {text: 'Yes', onPress: () => this.payatSalonConfirm()},
+          {text: 'No', onPress: () => console.log('No Pressed')},
+        ],
+        {cancelable: false},
+      );
   }
 
 
@@ -82,9 +125,17 @@ export default class Preview extends Component {
           )
     }else{
       return (
-        <TouchableHighlight style={styles.footerButton} onPress={()=>this.payviaOnline()}>
-            <Text  style={styles.footerButtonText}>Pay via Online</Text>
-        </TouchableHighlight>
+          <View style={styles.footerButtonBox}>
+              <View style={styles.footerButtonBoxInner}>
+                <TouchableHighlight style={styles.footerButtonCustome} onPress={()=>this.payviaOnline()}>
+                    <Text  style={styles.footerButtonText}>Pay Online</Text>
+                </TouchableHighlight>
+
+                <TouchableHighlight style={styles.footerButtonCustome} onPress={()=>this.payatSalon()}>
+                <Text  style={styles.footerButtonText}>Pay at Salon</Text>
+                </TouchableHighlight>
+              </View>
+          </View>
         )
     }
    
@@ -154,7 +205,7 @@ export default class Preview extends Component {
                                 <View style={styles.previewBox}>
                                     <View style={styles.previewBoxInner}>
                                         <View style={styles.previewBoxTitle}>
-                                            <Text style={styles.generalText}>Pay Online:</Text>
+                                            <Text style={styles.generalText}>Balance Amount:</Text>
                                         </View>
                                         <View style={styles.previewBoxContent}>
                                             <Text style={[styles.generalText, styles.paymentDesign2]}>{'\u20B9'} {payable_amount}</Text>
@@ -238,6 +289,24 @@ const styles = StyleSheet.create({
     backgroundColor:'#d1a440',
     bottom:0,
     width:'100%',
+  },
+  footerButtonBox:{
+    width:'100%',
+  },
+  footerButtonBoxInner:{
+    flex:2,
+    flexDirection: 'row',
+  },
+  footerButtonCustome:{
+    borderColor:'#d1a440',
+    borderWidth:0.5,
+    padding:10,
+    alignSelf:'center',
+    backgroundColor:'#d1a440',
+    bottom:5,
+    width:'40%',
+    marginLeft:'5%',
+    marginRight:'5%',
   },
   footerButtonText:{
     padding:5,

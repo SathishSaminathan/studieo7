@@ -4,6 +4,7 @@ import OTPInputView from '@twotalltotems/react-native-otp-input';
 import { Actions } from 'react-native-router-flux';
 import BackButton from './LoginBackButton.js';
 import axios from 'axios';
+// import Toast from 'react-native-simple-toast';
 
 export default class Loginotp extends Component {
 
@@ -19,6 +20,7 @@ export default class Loginotp extends Component {
   async componentWillMount(){
     let mobile_number = await AsyncStorage.getItem('mobile_number');  
     this.setState({ TextInputValue: mobile_number });
+    // Toast.showWithGravity('OTP send successfully', Toast.LONG, Toast.TOP);
   }
 
   resendOTP = async() =>{
@@ -26,9 +28,10 @@ export default class Loginotp extends Component {
       let mobile_number = await AsyncStorage.getItem('mobile_number');  
       const params = new URLSearchParams();
       params.append('mobile_number', mobile_number);
-      axios.post('http://studieo7.wssdemozone.in/api/resendOTP',params)
+      let baseURL = await AsyncStorage.getItem('baseURL');  
+      axios.post(baseURL+'api/resendOTP',params)
       .then(response => {
-        console.log(response.data);
+        // Toast.showWithGravity('OTP re-send successfully', Toast.LONG, Toast.TOP);
       })
       .catch(errorMsg => {
           console.log(errorMsg);
@@ -43,13 +46,16 @@ export default class Loginotp extends Component {
         const params = new URLSearchParams();
         params.append('mobile_number', mobile_number);
         params.append('otp', otpCode);
-      
-        axios.post('http://studieo7.wssdemozone.in/api/verifyOTP',params)
+        let baseURL = await AsyncStorage.getItem('baseURL');  
+        axios.post(baseURL+'api/verifyOTP',params)
           .then(response => {
             let resVal=response.data;
             if(resVal.status=='success'){
+              // Toast.showWithGravity('OTP verified successfully', Toast.LONG, Toast.TOP);
               AsyncStorage.setItem('AuthoKey',resVal.user_id); 
               Actions.dashboard();
+            }else{
+              // Toast.showWithGravity('Invalid OTP', Toast.LONG, Toast.TOP);
             }
 
           })

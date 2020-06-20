@@ -46,6 +46,7 @@ class App extends Component {
 
       this.setState({DeviceId:MyDevice.deviceId});
       AsyncStorage.setItem('DeviceId',MyDevice.deviceId);  
+      AsyncStorage.setItem('baseURL',"http://studieo7.wssdemozone.in/");  
 
       const params = new URLSearchParams();
       params.append('device_id', MyDevice.deviceId);

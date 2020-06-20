@@ -6,6 +6,7 @@ import { WebView } from 'react-native-webview';
 import { Constants } from 'expo';
 import { Actions } from 'react-native-router-flux';
 import axios from 'axios';
+// import Toast from 'react-native-simple-toast';
 
 export default class Payment extends Component {
 
@@ -17,7 +18,8 @@ export default class Payment extends Component {
         token:'token',
         amount: this.props.walletDetails.wallet_amount.wallet_amount,
         user_name:'',
-        user_mobile_number:''
+        user_mobile_number:'',
+        base_url:''
       }
     }
 
@@ -26,11 +28,16 @@ export default class Payment extends Component {
     this.setState({auth_id:AuthoKey});
     const params = new URLSearchParams();
     params.append('auth_id', AuthoKey);
-    axios.post('http://studieo7.wssdemozone.in/api/getUserDetails',params)
+    let baseURL = await AsyncStorage.getItem('baseURL'); 
+    this.setState({base_url:baseURL});
+    axios.post(baseURL+'api/getUserDetails',params)
       .then(response => {
         let resVal=response.data;
         if(resVal.status=='success'){
           this.setState({user_name:resVal.user_name,user_mobile_number:resVal.user_mobile_number});
+          if(resVal.user_name==''){
+            this.setState({user_name:resVal.user_mobile_number});
+          }
         }
         this.setState({serviceCheck:true});
       })
@@ -40,27 +47,30 @@ export default class Payment extends Component {
   }
 
   onNavigationStateChange = navState => {
-    if (navState.url.indexOf('http://studieo7.wssdemozone.in/api/paymentupdate') === 0) {
+    let baseUrlVal=this.state.base_url;
+    if (navState.url.indexOf(baseUrlVal+'api/paymentupdate') === 0) {
       // console.log('natigated');
       // const regex = /#access_token=(.+)/;
       // let accessToken = navState.url.match(regex)[1];
       // console.log(accessToken);
       Actions.wallet({type: 'reset'});
+      // Toast.showWithGravity('Appointment booked successfully', Toast.LONG, Toast.TOP);
     }
   };
 
   render() {
      if(this.state.serviceCheck==false)
             return null;
-    const url = 'http://studieo7.wssdemozone.in/api/payment/'+this.state.auth_id+'/'+this.state.token+'/'+this.state.amount+'/'+this.state.user_name+'/'+this.state.user_mobile_number;
-    console.log("url...",url)
+    let baseUrlVal=this.state.base_url;
+    const url = baseUrlVal+'api/payment/'+this.state.auth_id+'/'+this.state.token+'/'+this.state.amount+'/'+this.state.user_name+'/'+this.state.user_mobile_number;
+    //console.log(url);
     return (
       <View>
         <Image source={require('../assets/bg.png')} style={{ width: '100%', height: '100%', position:'relative'}}/>
         <View style={styles.logoBox}>
             <View style={styles.topSpace}></View>
             <BackButton backtext={"Payment"}/>
-              <WebView
+                <WebView
                 source={{
                   uri: url,
                 }}

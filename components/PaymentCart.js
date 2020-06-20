@@ -6,6 +6,7 @@ import { WebView } from 'react-native-webview';
 import { Constants } from 'expo';
 import { Actions } from 'react-native-router-flux';
 import axios from 'axios';
+// import Toast from 'react-native-simple-toast';
 
 export default class PaymentCart extends Component {
 
@@ -17,10 +18,12 @@ export default class PaymentCart extends Component {
         token:'token',
         amount: this.props.cartDetails.payable_amount.payable_amount,
         branch_id: this.props.cartDetails.branch_id.branch_id,
+        staff_id: this.props.cartDetails.staff_id.staff_id,
         cart_date: this.props.cartDetails.cart_date.cart_date,
         cart_amount: this.props.cartDetails.cart_amount.cart_amount,
         user_name:'',
-        user_mobile_number:''
+        user_mobile_number:'',
+        base_url:''
       }
     }
 
@@ -30,11 +33,16 @@ export default class PaymentCart extends Component {
     this.setState({auth_id:AuthoKey});
     const params = new URLSearchParams();
     params.append('auth_id', AuthoKey);
-    axios.post('http://studieo7.wssdemozone.in/api/getUserDetails',params)
+    let baseURL = await AsyncStorage.getItem('baseURL'); 
+    this.setState({base_url:baseURL});
+    axios.post(baseURL+'api/getUserDetails',params)
       .then(response => {
         let resVal=response.data;
         if(resVal.status=='success'){
-          this.setState({user_name:resVal.user_name,user_mobile_number:resVal.user_mobile_number});
+            this.setState({user_name:resVal.user_name,user_mobile_number:resVal.user_mobile_number});
+          if(resVal.user_name==''){
+            this.setState({user_name:resVal.user_mobile_number});
+          }
         }
         this.setState({serviceCheck:true});
       })
@@ -44,15 +52,19 @@ export default class PaymentCart extends Component {
   }
 
   onNavigationStateChange = navState => {
-    if (navState.url.indexOf('http://studieo7.wssdemozone.in/api/paymentCartupdate') === 0) {
+    let baseUrlVal=this.state.base_url;
+    if (navState.url.indexOf(baseUrlVal+'api/paymentCartupdate') === 0) {
       Actions.wallet({type: 'reset'});
+      // Toast.showWithGravity('Appointment booked successfully', Toast.LONG, Toast.TOP);
     }
   };
 
   render() {
      if(this.state.serviceCheck==false)
             return null;
-    const url = 'http://studieo7.wssdemozone.in/api/paymentCart/'+this.state.auth_id+'/'+this.state.token+'/'+this.state.amount+'/'+this.state.cart_amount+'/'+this.state.user_name+'/'+this.state.user_mobile_number+'/'+this.state.branch_id+'/'+this.state.cart_date;
+
+    let baseUrlVal=this.state.base_url;
+    const url = baseUrlVal+'api/paymentCart/'+this.state.auth_id+'/'+this.state.token+'/'+this.state.amount+'/'+this.state.cart_amount+'/'+this.state.user_name+'/'+this.state.user_mobile_number+'/'+this.state.branch_id+'/'+this.state.staff_id+'/'+this.state.cart_date;
     return (
       <View>
         <Image source={require('../assets/bg.png')} style={{ width: '100%', height: '100%', position:'relative'}}/>
